@@ -22,7 +22,8 @@ class ModelNetTrainer(object):
         self.log_dir = log_dir
         self.num_views = num_views
 
-        self.model.cuda()
+        device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+        self.model.to(device)
         if self.log_dir is not None:
             self.writer = SummaryWriter(log_dir)
 
@@ -32,6 +33,8 @@ class ModelNetTrainer(object):
         best_acc = 0
         i_acc = 0
         self.model.train()
+        device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+
         for epoch in range(n_epochs):
             # permute data for mvcnn
             rand_idx = np.random.permutation(int(len(self.train_loader.dataset.filepaths)/self.num_views))
@@ -51,10 +54,10 @@ class ModelNetTrainer(object):
 
                 if self.model_name == 'mvcnn':
                     N,V,C,H,W = data[1].size()
-                    in_data = Variable(data[1]).view(-1,C,H,W).cuda()
+                    in_data = Variable(data[1]).view(-1,C,H,W).to(device)
                 else:
-                    in_data = Variable(data[1].cuda())
-                target = Variable(data[0]).cuda().long()
+                    in_data = Variable(data[1].to(device))
+                target = Variable(data[0]).to(device).long()
 
                 self.optimizer.zero_grad()
 
@@ -108,6 +111,8 @@ class ModelNetTrainer(object):
         # in_data = None
         # out_data = None
         # target = None
+        device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+
 
         wrong_class = np.zeros(40)
         samples_class = np.zeros(40)
@@ -126,10 +131,10 @@ class ModelNetTrainer(object):
 
             if self.model_name == 'mvcnn':
                 N,V,C,H,W = data[1].size()
-                in_data = Variable(data[1]).view(-1,C,H,W).cuda()
+                in_data = Variable(data[1]).view(-1,C,H,W).to(device)
             else:#'svcnn'
-                in_data = Variable(data[1]).cuda()
-            target = Variable(data[0]).cuda()
+                in_data = Variable(data[1]).to(device)
+            target = Variable(data[0]).to(device)
 
             out_data = self.model(in_data)
             pred = torch.max(out_data, 1)[1]
