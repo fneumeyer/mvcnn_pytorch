@@ -7,8 +7,10 @@ from torch.autograd import Variable
 import torchvision.models as models
 from .Model import Model
 
-mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+
+mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).to(device)
+std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).to(device)
 
 def flip(x, dim):
     xsize = x.size()
@@ -30,12 +32,14 @@ class SVCNN(Model):
                          'person','piano','plant','radio','range_hood','sink','sofa','stairs',
                          'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
+        device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+        
         self.nclasses = nclasses
         self.pretraining = pretraining
         self.cnn_name = cnn_name
         self.use_resnet = cnn_name.startswith('resnet')
-        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).to(device)
+        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).to(device)
 
         if self.use_resnet:
             if self.cnn_name == 'resnet18':
@@ -79,10 +83,12 @@ class MVCNN(Model):
                          'person','piano','plant','radio','range_hood','sink','sofa','stairs',
                          'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
+        device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+
         self.nclasses = nclasses
         self.num_views = num_views
-        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).cuda()
-        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).cuda()
+        self.mean = Variable(torch.FloatTensor([0.485, 0.456, 0.406]), requires_grad=False).to(device)
+        self.std = Variable(torch.FloatTensor([0.229, 0.224, 0.225]), requires_grad=False).to(device)
 
         self.use_resnet = cnn_name.startswith('resnet')
 
