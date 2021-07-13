@@ -9,6 +9,7 @@ import torch
 import torchvision as vision
 from torchvision import transforms, datasets
 import random
+import os
 
 class MultiviewImgDataset(torch.utils.data.Dataset):
 
@@ -123,7 +124,10 @@ class SingleImgDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         path = self.filepaths[idx]
-        class_name = path.split('/')[-3]
+        #class_name = path.split('/')[-3]
+        path = os.path.normpath(path) 
+        class_name = path.split(os.sep)[-3] 
+        print(class_name)
         class_id = self.classnames.index(class_name)
 
         # Use PIL instead
