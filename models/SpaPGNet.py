@@ -8,9 +8,9 @@ class SpaPGNet(Model):
     def __init__(self, name, latent_space = 2048):
         super().__init__(name)
 
+        self.pretraining = True
         self.encoder = models.resnet50(pretrained=self.pretraining)
         self.encoder.fc = nn.Linear(2048, latent_space)
-
 
         #Inverse-decoder scheme
         #64, kernel = 3, stride = 2, padding = 1 =>  33 //32 x 33 x 33 x 33 

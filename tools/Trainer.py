@@ -30,18 +30,19 @@ class ModelNetTrainer(object):
 
     def train(self, n_epochs):
 
-        best_acc = 0
-        i_acc = 0
+        best_accuracy = 0
+        i_accumulated = 0
         self.model.train()
         device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
 
         for epoch in range(n_epochs):
             # permute data for mvcnn
-            rand_idx = np.random.permutation(int(len(self.train_loader.dataset.filepaths)/self.num_views))
-            filepaths_new = []
-            for i in range(len(rand_idx)):
-                filepaths_new.extend(self.train_loader.dataset.filepaths[rand_idx[i]*self.num_views:(rand_idx[i]+1)*self.num_views])
-            self.train_loader.dataset.filepaths = filepaths_new
+            # TODO this shuffling done here seems to make no sense, change it
+            # rand_idx = np.random.permutation(int(len(self.train_loader.dataset.filepaths)/self.num_views))
+            # filepaths_new = []
+            # for i in range(len(rand_idx)):
+            #     filepaths_new.extend(self.train_loader.dataset.filepaths[rand_idx[i]*self.num_views:(rand_idx[i]+1)*self.num_views])
+            # self.train_loader.dataset.filepaths = filepaths_new
 
             # plot learning rate
             lr = self.optimizer.state_dict()['param_groups'][0]['lr']
@@ -51,28 +52,28 @@ class ModelNetTrainer(object):
             out_data = None
             in_data = None
             for i, data in enumerate(self.train_loader):
+                # TODO check what the data tuple exactly contains
+                # TODO right now it is (target_class, tensor of size [1, 12, 3, 224, 224], list of 12 filepaths)
 
-                if self.model_name == 'mvcnn':
-                    N,V,C,H,W = data[1].size()
-                    in_data = Variable(data[1]).view(-1,C,H,W).to(device)
-                else:
-                    in_data = Variable(data[1].to(device))
+                # in_data has shape B, L, C, H, W: Batch size, number of images, number of channels per image, height, width
+                in_data = Variable(data[1]).to(device)
                 target = Variable(data[0]).to(device).long()
 
                 self.optimizer.zero_grad()
 
+                # assumption: out_data.shape = [B, 2, 64, 64, 64]
                 out_data = self.model(in_data)
 
                 loss = self.loss_fn(out_data, target)
                 
-                self.writer.add_scalar('train/train_loss', loss, i_acc+i+1)
+                self.writer.add_scalar('train/train_loss', loss, i_accumulated+i+1)
 
                 pred = torch.max(out_data, 1)[1]
                 results = pred == target
                 correct_points = torch.sum(results.long())
 
                 acc = correct_points.float()/results.size()[0]
-                self.writer.add_scalar('train/train_overall_acc', acc, i_acc+i+1)
+                self.writer.add_scalar('train/train_overall_acc', acc, i_accumulated+i+1)
 
                 loss.backward()
                 self.optimizer.step()
@@ -80,7 +81,7 @@ class ModelNetTrainer(object):
                 log_str = 'epoch %d, step %d: train_loss %.3f; train_acc %.3f' % (epoch+1, i+1, loss, acc)
                 if (i+1)%1==0:
                     print(log_str)
-            i_acc += i
+            i_accumulated += i
 
             # evaluation
             if (epoch+1)%1==0:
@@ -91,8 +92,8 @@ class ModelNetTrainer(object):
                 self.writer.add_scalar('val/val_loss', loss, epoch+1)
 
             # save best model
-            if val_overall_acc > best_acc:
-                best_acc = val_overall_acc
+            if val_overall_acc > best_accuracy:
+                best_accuracy = val_overall_acc
                 self.model.save(self.log_dir, epoch)
  
             # adjust learning rate manually
@@ -114,26 +115,16 @@ class ModelNetTrainer(object):
         device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
 
 
-        wrong_class = np.zeros(40)
-        samples_class = np.zeros(40)
+        wrong_class = np.zeros(2)
+        samples_class = np.zeros(2)
         all_loss = 0
 
         self.model.eval()
 
-        avgpool = nn.AvgPool1d(1, 1)
-
-        total_time = 0.0
-        total_print_time = 0.0
-        all_target = []
-        all_pred = []
-
         for _, data in enumerate(self.val_loader, 0):
 
-            if self.model_name == 'mvcnn':
-                N,V,C,H,W = data[1].size()
-                in_data = Variable(data[1]).view(-1,C,H,W).to(device)
-            else:#'svcnn'
-                in_data = Variable(data[1]).to(device)
+            # in_data has shape B, L, C, H, W: Batch size, number of images, number of channels per image, height, width
+            in_data = Variable(data[1]).to(device)
             target = Variable(data[0]).to(device)
 
             out_data = self.model(in_data)

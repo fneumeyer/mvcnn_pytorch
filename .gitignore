@@ -5,3 +5,5 @@ ModelNet40_meshes
 
 # Development Env
 .vscode
+
+*.pyc
