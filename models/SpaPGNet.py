@@ -1,4 +1,6 @@
+import torch
 import torch.nn as nn
+import torchvision.models as models
 from .Model import Model
 
 class SpaPGNet(Model):
@@ -6,10 +8,8 @@ class SpaPGNet(Model):
     def __init__(self, name, latent_space = 2048):
         super().__init__(name)
 
-        latent_space = 2048
-
         self.encoder = models.resnet50(pretrained=self.pretraining)
-        self.encoder.fc = nn.Linear(2048,latent_space)
+        self.encoder.fc = nn.Linear(2048, latent_space)
 
 
         #Inverse-decoder scheme
@@ -24,17 +24,17 @@ class SpaPGNet(Model):
         self.decoder = nn.Sequential(
             nn.ConvTranspose3d(latent_space, 1024, 2),
             nn.ReLU(),
-            nn.ConvTranspose3d(1024, 512, 2)
+            nn.ConvTranspose3d(1024, 512, 2),
             nn.ReLU(),
-            nn.ConvTranspose3d(512, 256, 2)
+            nn.ConvTranspose3d(512, 256, 2),
             nn.ReLU(),
-            nn.ConvTranspose3d(256, 128, 3)
+            nn.ConvTranspose3d(256, 128, 3),
             nn.ReLU(),
-            nn.ConvTranspose3d(128, 64, 3, stride = 2)
+            nn.ConvTranspose3d(128, 64, 3, stride = 2),
             nn.ReLU(),            
-            nn.ConvTranspose3d(64, 32, 3, stride = 2)
+            nn.ConvTranspose3d(64, 32, 3, stride = 2),
             nn.ReLU(),
-            nn.ConvTranspose3d(32, 1, 3, stride = 2, padding = 1)
+            nn.ConvTranspose3d(32, 1, 3, stride = 2, padding = 1),
             nn.ReLU(),
         )
 
@@ -43,7 +43,7 @@ class SpaPGNet(Model):
     def forward(self, x):
         
         #Batch size, number of images, number of channels per image, height, width
-        B, L, C, H, W = X.shape
+        B, L, C, H, W = x.shape
 
         x = torch.cat([self.encoder(x[:,i]) for i in range (L)])
         
