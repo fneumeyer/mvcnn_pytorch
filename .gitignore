@@ -1,0 +1,7 @@
+# Datasets
+ModelNet40
+modelnet40_images_new_12x
+ModelNet40_meshes
+
+# Development Env
+.vscode
