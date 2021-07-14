@@ -61,14 +61,14 @@ class ModelNetTrainer(object):
 
                 self.optimizer.zero_grad()
 
-                # assumption: out_data.shape = [B, 2, 64, 64, 64]
+                # assumption: out_data.shape = [B, 1, 64, 64, 64]
                 out_data = self.model(in_data)
 
                 loss = self.loss_fn(out_data, target)
                 
                 self.writer.add_scalar('train/train_loss', loss, i_accumulated+i+1)
 
-                pred = torch.max(out_data, 1)[1]
+                pred = out_data > 0
                 results = pred == target
                 correct_points = torch.sum(results.long())
 
@@ -128,7 +128,7 @@ class ModelNetTrainer(object):
             target = Variable(data[0]).to(device)
 
             out_data = self.model(in_data)
-            pred = torch.max(out_data, 1)[1]
+            pred = out_data > 0
             all_loss += self.loss_fn(out_data, target).cpu().data.numpy()
             results = pred == target
 

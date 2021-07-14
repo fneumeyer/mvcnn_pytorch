@@ -64,5 +64,5 @@ if __name__ == '__main__':
     # print('num_train_files: '+str(len(train_dataset.filepaths)))
     # print('num_val_files: '+str(len(val_dataset.filepaths)))
     
-    trainer = ModelNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.CrossEntropyLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
+    trainer = ModelNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
     trainer.train(30)
