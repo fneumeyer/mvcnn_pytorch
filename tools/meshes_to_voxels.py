@@ -51,6 +51,7 @@ classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car'
                          'person','piano','plant','radio','range_hood','sink','sofa','stairs',
                          'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
+
 for classname in classnames:
     if not os.path.exists(os.path.join(voxelized_dataset_path, classname)):
         os.makedirs(os.path.join(voxelized_dataset_path, classname))

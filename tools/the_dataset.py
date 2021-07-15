@@ -1,8 +1,12 @@
 import torch
 import os
 
+from PIL import Image
+from torchvision import transforms
+import numpy as np
+
 class TheDataset(torch.utils.data.Dataset):
-    def __init__(self, data_path_2D, data_path_3D='', num_views=12, num_models = 0):
+    def __init__(self, data_path_2D, data_path_3D, num_views=12, num_models = 0):
         self.classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
                     'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
                     'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
@@ -13,6 +17,15 @@ class TheDataset(torch.utils.data.Dataset):
         self.num_views = num_views
         self.filepaths_2D = []
 
+        self.filepaths_3D = []
+
+        self.transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(), # do we want this? 
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], # not sure what those are doing
+                                     std=[0.229, 0.224, 0.225])
+            ])
+
         for classname in self.classnames:    
             for split in ["train", "test"]:
                 for filename in os.listdir(os.path.join(self.data_path_2D, classname, split)):                
@@ -22,17 +35,47 @@ class TheDataset(torch.utils.data.Dataset):
             self.filepaths_2D = self.filepaths_2D[:min(num_models,len(self.filepaths_2D))]
 
         # Select subset for different number of views
-        # stride = int(12/self.num_views) # 12 6 4 3 2 1
-        # all_files = all_files[::stride]
-        
-        # print(self.filepaths)
+        if self.num_views == 12:
+            pass
+        elif self.num_views in [6,4,3,2,1]:
+            stride = int(12/self.num_views)
+            self.filepaths_2D = self.filepaths_2D[::stride]
+        else:
+            raise Exception("Invalid number of views")
+
+        # 3D
+        for classname in self.classnames:    
+            for split in ["train", "test"]:
+                for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
+                    self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
 
     def __len__(self):
-        return int(len(self.filepaths_2D)/self.num_views) 
+        return int(len(self.filepaths_3D)) 
 
     def __getitem__(self, idx):
-        pass
+        # 2D        
+        path = self.filepaths_2D[idx*self.num_views - self.num_views + 1] 
+        path = os.path.normpath(path) 
+        class_name = path.split(os.sep)[-3]
+        #class_id = self.classnames.index(class_name)                        
+
+        imgs = []
+        for i in range(self.num_views):
+            im = Image.open(self.filepaths_2D[idx*self.num_views - self.num_views + 1 + i]).convert('RGB')            
+            if self.transform:
+                im = self.transform(im)
+            imgs.append(im)
+        
+        stacked_images = torch.stack(imgs)
+
+        # 3D
+        grid = np.load(self.filepaths_3D[idx])
+        grid = torch.from_numpy(grid)
+        print(grid.size())
+        return (class_name, stacked_images, grid)
 
 
+data = TheDataset(data_path_2D=r"C:\Projects\mvcnn_pytorch\ModelNet40_2D", data_path_3D=r"C:\Projects\mvcnn_pytorch\ModelNet40", num_models=0)
+print(data.__len__())
+data.__getitem__(0)
 
-data = TheDataset(data_path_2D=r"C:\Projects\mvcnn_pytorch\ModelNet40")
