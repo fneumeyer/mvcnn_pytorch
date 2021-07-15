@@ -6,7 +6,7 @@ from torchvision import transforms
 import numpy as np
 
 class TheDataset(torch.utils.data.Dataset):
-    def __init__(self, data_path_2D, data_path_3D, num_views=12, num_models = 0):
+    def __init__(self, data_path_2D, data_path_3D, split, num_views=12, num_models = 0):
         self.classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
                     'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
                     'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
@@ -27,9 +27,8 @@ class TheDataset(torch.utils.data.Dataset):
             ])
 
         for classname in self.classnames:    
-            for split in ["train", "test"]:
-                for filename in os.listdir(os.path.join(self.data_path_2D, classname, split)):                
-                    self.filepaths_2D.append(os.path.join(self.data_path_2D, classname, split, filename))    
+            for filename in os.listdir(os.path.join(self.data_path_2D, classname, split)):                
+                self.filepaths_2D.append(os.path.join(self.data_path_2D, classname, split, filename))
 
         if num_models != 0: # Use only a part of the dataset
             self.filepaths_2D = self.filepaths_2D[:min(num_models,len(self.filepaths_2D))]
@@ -45,9 +44,11 @@ class TheDataset(torch.utils.data.Dataset):
 
         # 3D
         for classname in self.classnames:    
-            for split in ["train", "test"]:
-                for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
-                    self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
+            for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
+                self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
+
+        print(len(self.filepaths_2D))
+        print(len(self.filepaths_3D))
 
     def __len__(self):
         return int(len(self.filepaths_3D)) 

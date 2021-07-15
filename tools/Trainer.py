@@ -8,7 +8,7 @@ import os
 from tensorboardX import SummaryWriter
 import time
 
-class ModelNetTrainer(object):
+class SpaPGNetTrainer(object):
 
     def __init__(self, model, train_loader, val_loader, optimizer, loss_fn, \
                  model_name, log_dir, num_views=12):

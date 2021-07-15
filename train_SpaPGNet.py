@@ -1,3 +1,4 @@
+from tools.the_dataset import TheDataset
 import numpy as np
 import torch
 import torch.optim as optim
@@ -5,7 +6,7 @@ import torch.nn as nn
 import os,shutil,json
 import argparse
 
-from tools.Trainer import ModelNetTrainer
+from tools.Trainer import SpaPGNetTrainer
 from tools.ImgDataset import MultiviewImgDataset, SingleImgDataset
 from models.MVCNN import MVCNN, SVCNN
 from models.SpaPGNet import SpaPGNet
@@ -19,8 +20,8 @@ parser.add_argument("-weight_decay", type=float, help="weight decay", default=0.
 parser.add_argument("-no_pretraining", dest='no_pretraining', action='store_true')
 # parser.add_argument("-cnn_name", "--cnn_name", type=str, help="cnn model name", default="vgg11")
 parser.add_argument("-num_views", type=int, help="number of views", default=12)
-parser.add_argument("-train_path", type=str, default="modelnet40_images_new_12x/*/train")
-parser.add_argument("-val_path", type=str, default="modelnet40_images_new_12x/*/test")
+parser.add_argument("-dataset_path2d", type=str, default="modelnet40_images_new_12x")
+parser.add_argument("-dataset_path3d", type=str, default="ModelNet40Voxelized")
 parser.set_defaults(train=False)
 
 def create_folder(log_dir):
@@ -57,12 +58,12 @@ if __name__ == '__main__':
     optimizer = optim.Adam(spa_pg_net.parameters(), lr=args.lr, weight_decay=args.weight_decay, betas=(0.9, 0.999))
     
     # TODO
-    train_dataset = MultiviewImgDataset(args.train_path, scale_aug=False, rot_aug=False, num_models=n_models_train, num_views=args.num_views)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchSize, shuffle=False, num_workers=0)# shuffle needs to be false! it's done within the trainer
-    # val_dataset = MultiviewImgDataset(args.val_path, scale_aug=False, rot_aug=False, num_views=args.num_views)
-    # val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batchSize, shuffle=False, num_workers=0)
+    train_dataset = TheDataset(args.dataset_path2d, args.dataset_path3d, split='train', num_models=n_models_train, num_views=args.num_views)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchSize, shuffle=True, num_workers=0)# shuffle needs to be false! it's done within the trainer
+    val_dataset = TheDataset(args.dataset_path2d, args.dataset_path3d, split='test', num_views=args.num_views)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batchSize, shuffle=True, num_workers=0)
     # print('num_train_files: '+str(len(train_dataset.filepaths)))
     # print('num_val_files: '+str(len(val_dataset.filepaths)))
     
-    trainer = ModelNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
+    trainer = SpaPGNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
     trainer.train(30)

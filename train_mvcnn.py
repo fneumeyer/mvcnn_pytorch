@@ -5,7 +5,7 @@ import torch.nn as nn
 import os,shutil,json
 import argparse
 
-from tools.Trainer import ModelNetTrainer
+from tools.Trainer import SpaPGNetTrainer
 from tools.ImgDataset import MultiviewImgDataset, SingleImgDataset
 from models.MVCNN import MVCNN, SVCNN
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=0)
     print('num_train_files: '+str(len(train_dataset.filepaths)))
     print('num_val_files: '+str(len(val_dataset.filepaths)))
-    trainer = ModelNetTrainer(cnet, train_loader, val_loader, optimizer, nn.CrossEntropyLoss(), 'svcnn', log_dir, num_views=1)
+    trainer = SpaPGNetTrainer(cnet, train_loader, val_loader, optimizer, nn.CrossEntropyLoss(), 'svcnn', log_dir, num_views=1)
     trainer.train(30)
 
     # STAGE 2
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batchSize, shuffle=False, num_workers=0)
     print('num_train_files: '+str(len(train_dataset.filepaths)))
     print('num_val_files: '+str(len(val_dataset.filepaths)))
-    trainer = ModelNetTrainer(cnet_2, train_loader, val_loader, optimizer, nn.CrossEntropyLoss(), 'mvcnn', log_dir, num_views=args.num_views)
+    trainer = SpaPGNetTrainer(cnet_2, train_loader, val_loader, optimizer, nn.CrossEntropyLoss(), 'mvcnn', log_dir, num_views=args.num_views)
     trainer.train(30)
 
 
