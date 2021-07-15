@@ -45,17 +45,20 @@ voxelized_dataset_path = r"ModelNet40Voxelized"
 if not os.path.exists(voxelized_dataset_path):
     os.makedirs(voxelized_dataset_path)
 
-classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
-                         'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
-                         'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
-                         'person','piano','plant','radio','range_hood','sink','sofa','stairs',
-                         'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
+#classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
+#                         'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
+#                         'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
+#                         'person','piano','plant','radio','range_hood','sink','sofa','stairs',
+#                         'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
+
+classnames=['sofa','stairs','stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
 for classname in classnames:
     if not os.path.exists(os.path.join(voxelized_dataset_path, classname)):
         os.makedirs(os.path.join(voxelized_dataset_path, classname))
-
+    print("")
     for split in ["train", "test"]:
+        print("")
         i = 0
         n_files_train = len(os.listdir(os.path.join(path_to_dataset, classname, split)))
         for filename in os.listdir(os.path.join(path_to_dataset, classname, split)):
