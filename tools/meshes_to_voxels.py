@@ -23,17 +23,17 @@ def get_voxel_grid_from_mesh(path_to_mesh, resolution=64):
         mesh.vertices[index][1] -= y_avrg
         mesh.vertices[index][2] -= z_avrg
 
-    # for some reason I had to devide 1 by 63 to get 64 voxels (second argument is the voxel size)
-    grid = tr.voxel.creation.voxelize(mesh, 0.01587301587) 
+    # second argument is the voxel size - for some reason I had to devide 1 by 63 to get 64 voxels (still I got 65 voxels on one of the meshes) 
+    grid = tr.voxel.creation.voxelize(mesh, 0.015873) 
     grid = grid.matrix # the actual values for the voxels as a numpy array
 
     new_grid = [[[False] * resolution] * resolution] * resolution
     new_grid = np.array(new_grid)
 
     d1, d2, d3 = grid.shape
-    for i in range(d1):
-        for j in range(d2):
-            for k in range(d3):
+    for i in range(d1 if d1 <= resolution else resolution):
+        for j in range(d2 if d2 <= resolution else resolution):
+            for k in range(d3 if d3 <= resolution else resolution):
                 new_grid[i][j][k] = grid[i][j][k]
 
     return new_grid
@@ -44,9 +44,6 @@ voxelized_dataset_path = r"ModelNet40Voxelized"
 
 if not os.path.exists(voxelized_dataset_path):
     os.makedirs(voxelized_dataset_path)
-else:
-    print("Folder for the voxelized dataset already exists, delete it first")
-    sys.exit()
 
 classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
                          'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
@@ -65,9 +62,10 @@ for classname in classnames:
             if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split)):
                 os.makedirs(os.path.join(voxelized_dataset_path, classname, split))
 
-            grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
-            np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
-            
+            if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):
+                grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
+                np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
+
             i += 1
             sys.stdout.write("\rWrote file {} out of {} in {}".format(i, n_files_train, os.path.join(voxelized_dataset_path, classname, split)))
             sys.stdout.flush()
