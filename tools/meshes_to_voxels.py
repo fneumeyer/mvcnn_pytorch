@@ -45,13 +45,11 @@ voxelized_dataset_path = r"ModelNet40Voxelized"
 if not os.path.exists(voxelized_dataset_path):
     os.makedirs(voxelized_dataset_path)
 
-#classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
-#                         'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
-#                         'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
-#                         'person','piano','plant','radio','range_hood','sink','sofa','stairs',
-#                         'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
-
-classnames=['sofa','stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
+classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
+                         'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
+                         'guitar','keyboard','lamp','laptop','mantel','monitor','night_stand',
+                         'person','piano','plant','radio','range_hood','sink','sofa','stairs',
+                         'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
 for classname in classnames:
     if not os.path.exists(os.path.join(voxelized_dataset_path, classname)):
@@ -73,7 +71,7 @@ for classname in classnames:
                     except Exception as ex:
                         i += 1
                         print(ex)
-                        print("\File {} out of {} in {} wasn't written due to memory error!".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))                        
+                        print("\File {} out of {} in {} wasn't written due to memory error!\n".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))                        
                         continue        
 
             i += 1
