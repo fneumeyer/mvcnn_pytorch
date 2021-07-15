@@ -51,7 +51,7 @@ if not os.path.exists(voxelized_dataset_path):
 #                         'person','piano','plant','radio','range_hood','sink','sofa','stairs',
 #                         'stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
-classnames=['sofa','stairs','stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
+classnames=['sofa','stool','table','tent','toilet','tv_stand','vase','wardrobe','xbox']
 
 for classname in classnames:
     if not os.path.exists(os.path.join(voxelized_dataset_path, classname)):
@@ -60,15 +60,22 @@ for classname in classnames:
     for split in ["train", "test"]:
         print("")
         i = 0
-        n_files_train = len(os.listdir(os.path.join(path_to_dataset, classname, split)))
+        n_files = len(os.listdir(os.path.join(path_to_dataset, classname, split)))
         for filename in os.listdir(os.path.join(path_to_dataset, classname, split)):
             if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split)):
                 os.makedirs(os.path.join(voxelized_dataset_path, classname, split))
 
             if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):
-                grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
-                np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
+                if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):
+                    try:
+                        grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
+                        np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
+                    except Exception as ex:
+                        i += 1
+                        print(ex)
+                        print("\File {} out of {} in {} wasn't written due to memory error!".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))                        
+                        continue        
 
             i += 1
-            sys.stdout.write("\rWrote file {} out of {} in {}".format(i, n_files_train, os.path.join(voxelized_dataset_path, classname, split)))
+            sys.stdout.write("\rWrote file {} out of {} in {}".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))
             sys.stdout.flush()
