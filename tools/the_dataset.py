@@ -71,11 +71,7 @@ class TheDataset(torch.utils.data.Dataset):
         # 3D
         grid = np.load(self.filepaths_3D[idx])
         grid = torch.from_numpy(grid)
-        print(grid.size())
+        
         return (class_name, stacked_images, grid)
 
-
-data = TheDataset(data_path_2D=r"C:\Projects\mvcnn_pytorch\ModelNet40_2D", data_path_3D=r"C:\Projects\mvcnn_pytorch\ModelNet40", num_models=0)
-print(data.__len__())
-data.__getitem__(0)
 
