@@ -4,6 +4,7 @@ ModelNet40Voxelized
 ModelNet40
 modelnet40_images_new_12x
 ModelNet40_meshes
+spec-file.txt
 
 # Development Env
 .vscode

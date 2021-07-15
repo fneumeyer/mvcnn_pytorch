@@ -3,7 +3,6 @@ import sys
 import trimesh as tr
 from trimesh.voxel import creation # why doesn't it work without this import? 
 import numpy as np
-import pickle as pkl
 
 def get_voxel_grid_from_mesh(path_to_mesh, resolution=64):
     mesh = tr.load(path_to_mesh)
@@ -47,6 +46,7 @@ if not os.path.exists(voxelized_dataset_path):
     os.makedirs(voxelized_dataset_path)
 else:
     print("Folder for the voxelized dataset already exists, delete it first")
+    sys.exit()
 
 classnames=['airplane','bathtub','bed','bench','bookshelf','bottle','bowl','car','chair',
                          'cone','cup','curtain','desk','door','dresser','flower_pot','glass_box',
