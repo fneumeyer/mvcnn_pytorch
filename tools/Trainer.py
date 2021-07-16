@@ -56,8 +56,9 @@ class SpaPGNetTrainer(object):
                 # TODO right now it is (target_class, tensor of size [1, 12, 3, 224, 224], list of 12 filepaths)
 
                 # in_data has shape B, L, C, H, W: Batch size, number of images, number of channels per image, height, width
-                in_data = Variable(data[1]).to(device)
-                target = Variable(data[0]).to(device).long()
+                label, images, grid = data
+                in_data = Variable(images).to(device)
+                target = Variable(grid).to(device).long()
 
                 self.optimizer.zero_grad()
 

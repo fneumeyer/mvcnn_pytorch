@@ -47,9 +47,6 @@ class TheDataset(torch.utils.data.Dataset):
             for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
                 self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
 
-        print(len(self.filepaths_2D))
-        print(len(self.filepaths_3D))
-
     def __len__(self):
         return int(len(self.filepaths_3D)) 
 
