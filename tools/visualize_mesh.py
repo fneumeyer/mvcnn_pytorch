@@ -23,6 +23,6 @@ def visualize_pointcloud(point_cloud, point_size, flip_axes=False, name='point_c
     plot.display()
 
 # %%
-grid = np.load(r"C:\Projects\mvcnn_pytorch\ModelNet40Voxelized\guitar\train\guitar_0009.npy")
-visualize_occupancy(grid)
+#grid = np.load(r"C:\Projects\mvcnn_pytorch\ModelNet40Voxelized\guitar\train\guitar_0009.npy")
+#visualize_occupancy(grid)
 # %%

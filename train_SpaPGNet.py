@@ -2,6 +2,7 @@ from tools.the_dataset import TheDataset
 import numpy as np
 import torch
 import torch.optim as optim
+from torchinfo import summary
 import torch.nn as nn
 import os,shutil,json
 import argparse
@@ -10,12 +11,13 @@ from tools.Trainer import SpaPGNetTrainer
 from tools.ImgDataset import MultiviewImgDataset, SingleImgDataset
 from models.MVCNN import MVCNN, SVCNN
 from models.SpaPGNet import SpaPGNet
+from tools.visualize_mesh import visualize_occupancy
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-name", "--name", type=str, help="Name of the experiment", default="MVCNN")
 parser.add_argument("-bs", "--batchSize", type=int, help="Batch size for the second stage", default=5)# it will be *12 images in each batch for mvcnn
 parser.add_argument("-num_models", type=int, help="number of models per class", default=0)
-parser.add_argument("-lr", type=float, help="learning rate", default=5e-5)
+parser.add_argument("-lr", type=float, help="learning rate", default=5e-4)
 parser.add_argument("-weight_decay", type=float, help="weight decay", default=0.0)
 parser.add_argument("-no_pretraining", dest='no_pretraining', action='store_true')
 # parser.add_argument("-cnn_name", "--cnn_name", type=str, help="cnn model name", default="vgg11")
@@ -52,6 +54,7 @@ if __name__ == '__main__':
     # cnet_2 = MVCNN(args.name, cnet, nclasses=40, cnn_name=args.cnn_name, num_views=args.num_views)
     # del cnet
     spa_pg_net = SpaPGNet(args.name)
+    summary(spa_pg_net)
 
     optimizer = optim.Adam(spa_pg_net.parameters(), lr=args.lr, weight_decay=args.weight_decay, betas=(0.9, 0.999))
     
@@ -63,5 +66,14 @@ if __name__ == '__main__':
     print('num_train_files: '+str(len(train_dataset)))
     print('num_val_files: '+str(len(val_dataset)))
     
-    trainer = SpaPGNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
-    trainer.train(300)
+    device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
+    trainer = SpaPGNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(pos_weight=torch.tensor([150]).to(device)), 'SpaPGNet', log_dir, num_views=args.num_views)
+    trainer.train(250)
+
+    
+    label, imgs, grid = train_dataset[0]
+    imgs = torch.unsqueeze(imgs, 0).to(device)
+    pred = torch.sigmoid(spa_pg_net.forward(imgs))
+
+    torch.save(pred, "pred.pth")
+    torch.save(grid, "grid.pth")

@@ -30,7 +30,7 @@ class SpaPGNetTrainer(object):
 
     def train(self, n_epochs):
 
-        best_iou = 0
+        best_iou = -1
         i_accumulated = 0
         self.model.train()
         device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
@@ -64,15 +64,16 @@ class SpaPGNetTrainer(object):
 
                 # assumption: out_data.shape = [B, 1, 64, 64, 64]
                 out_data = self.model(in_data)
+                print("Output shape:", out_data.shape)
 
                 loss = self.loss_fn(out_data, target)
                 
                 self.writer.add_scalar('train/train_loss', loss, i_accumulated+i+1)
 
-                prediction = torch.greater(out_data, 0).float()
+                prediction = torch.greater(out_data, 0.3).float()
                 intersection = torch.sum(prediction.mul(target)).float()
                 union = torch.sum(torch.ge(prediction.add(target), 1))
-                iou = intersection / union;
+                iou = intersection / union
                 self.writer.add_scalar('train/train_iou', iou, i_accumulated+i+1)
 
                 loss.backward()
@@ -129,8 +130,9 @@ class SpaPGNetTrainer(object):
             in_data = Variable(images).to(device)
             target = Variable(grid).to(device).float()
             out_data = self.model(in_data)
+            test = torch.sigmoid(out_data)
 
-            prediction = torch.greater(out_data, 0).float()
+            prediction = torch.ge(test, 0.3).float()
             intersection = torch.sum(prediction.mul(target)).float()
             union = torch.sum(torch.ge(prediction.add(target), 1)).float()
             iou = intersection.float() / union.float();

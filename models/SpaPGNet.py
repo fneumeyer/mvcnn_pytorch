@@ -23,19 +23,25 @@ class SpaPGNet(Model):
 
         self.decoder = nn.Sequential(
             nn.ConvTranspose3d(latent_space, 1024, 2),
+            #torch.nn.BatchNorm3d(1024),
             nn.ReLU(),
             nn.ConvTranspose3d(1024, 512, 2),
+            #torch.nn.BatchNorm3d(512),
             nn.ReLU(),
             nn.ConvTranspose3d(512, 256, 2),
+            #torch.nn.BatchNorm3d(256),
             nn.ReLU(),
             nn.ConvTranspose3d(256, 128, 3),
+            #torch.nn.BatchNorm3d(128),
             nn.ReLU(),
             nn.ConvTranspose3d(128, 64, 3),
+            #torch.nn.BatchNorm3d(64),
             nn.ReLU(),            
             nn.ConvTranspose3d(64, 32, 5, stride = 3, padding = 2),
+            #torch.nn.BatchNorm3d(32),
             nn.ReLU(),
             nn.ConvTranspose3d(32, 1, 5, stride = 3, padding = 2),
-            nn.ReLU(),
+            #nn.ReLU(),
         )
 
 
