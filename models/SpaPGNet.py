@@ -12,14 +12,14 @@ class SpaPGNet(Model):
         self.encoder = models.resnet50(pretrained=self.pretraining)
         self.encoder.fc = nn.Linear(2048, latent_space)
 
-        #Inverse-decoder scheme
-        #64, kernel = 3, stride = 2, padding = 1 =>  33 //32 x 33 x 33 x 33 
-        #33, kernel = 3, stride = 2, padding = 0 =>  15,//64 x 15 x 15 x 15 
-        #15, kernel = 3, stride = 2, padding = 0 => 6   //128 x 6 x 6 x 6
-        #6, kernel = 3, stride = 1, padding = 0 => 4    //256 x 4 x 4 x 4
-        #4, kernel = 2, stride = 1, padding = 0 => 3    //512 x 3 x 3 x 3
-        #3, kernel = 2, stride = 1, padding = 0 => 2    //1024 x 2 x 2 x 2 
-        #2, kernel = 2, stride = 1, padding = 0 => 1    //2048 x 1 x 1 x 1
+        # #Inverse-decoder scheme
+        # #64, kernel = 3, stride = 2, padding = 1 =>  33 //32 x 33 x 33 x 33 
+        # #33, kernel = 3, stride = 2, padding = 0 =>  15,//64 x 15 x 15 x 15 
+        # #15, kernel = 3, stride = 2, padding = 0 => 6   //128 x 6 x 6 x 6
+        # #6, kernel = 3, stride = 1, padding = 0 => 4    //256 x 4 x 4 x 4
+        # #4, kernel = 2, stride = 1, padding = 0 => 3    //512 x 3 x 3 x 3
+        # #3, kernel = 2, stride = 1, padding = 0 => 2    //1024 x 2 x 2 x 2 
+        # #2, kernel = 2, stride = 1, padding = 0 => 1    //2048 x 1 x 1 x 1
 
         self.decoder = nn.Sequential(
             nn.ConvTranspose3d(latent_space, 1024, 2),
@@ -30,11 +30,11 @@ class SpaPGNet(Model):
             nn.ReLU(),
             nn.ConvTranspose3d(256, 128, 3),
             nn.ReLU(),
-            nn.ConvTranspose3d(128, 64, 3, stride = 2),
+            nn.ConvTranspose3d(128, 64, 3),
             nn.ReLU(),            
-            nn.ConvTranspose3d(64, 32, 3, stride = 2),
+            nn.ConvTranspose3d(64, 32, 5, stride = 3, padding = 2),
             nn.ReLU(),
-            nn.ConvTranspose3d(32, 1, 3, stride = 2, padding = 1),
+            nn.ConvTranspose3d(32, 1, 5, stride = 3, padding = 2),
             nn.ReLU(),
         )
 
