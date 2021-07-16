@@ -13,8 +13,8 @@ from models.SpaPGNet import SpaPGNet
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-name", "--name", type=str, help="Name of the experiment", default="MVCNN")
-parser.add_argument("-bs", "--batchSize", type=int, help="Batch size for the second stage", default=8)# it will be *12 images in each batch for mvcnn
-parser.add_argument("-num_models", type=int, help="number of models per class", default=1000)
+parser.add_argument("-bs", "--batchSize", type=int, help="Batch size for the second stage", default=6)# it will be *12 images in each batch for mvcnn
+parser.add_argument("-num_models", type=int, help="number of models per class", default=0)
 parser.add_argument("-lr", type=float, help="learning rate", default=5e-5)
 parser.add_argument("-weight_decay", type=float, help="weight decay", default=0.0)
 parser.add_argument("-no_pretraining", dest='no_pretraining', action='store_true')
@@ -44,8 +44,6 @@ if __name__ == '__main__':
     json.dump(vars(args), config_f)
     config_f.close()
 
-
-
     # STAGE 2
     log_dir = args.name+'_stage_2'
     create_folder(log_dir)
@@ -62,8 +60,8 @@ if __name__ == '__main__':
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batchSize, shuffle=True, num_workers=0)# shuffle needs to be false! it's done within the trainer
     val_dataset = TheDataset(args.dataset_path2d, args.dataset_path3d, split='test', num_views=args.num_views)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batchSize, shuffle=True, num_workers=0)
-    # print('num_train_files: '+str(len(train_dataset.filepaths)))
-    # print('num_val_files: '+str(len(val_dataset.filepaths)))
+    print('num_train_files: '+str(len(train_dataset)))
+    print('num_val_files: '+str(len(val_dataset)))
     
     trainer = SpaPGNetTrainer(spa_pg_net, train_loader, val_loader, optimizer, nn.BCEWithLogitsLoss(), 'SpaPGNet', log_dir, num_views=args.num_views)
     trainer.train(30)
