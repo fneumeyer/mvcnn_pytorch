@@ -30,7 +30,7 @@ class SpaPGNetTrainer(object):
 
     def train(self, n_epochs):
 
-        best_accuracy = 0
+        best_iou = 0
         i_accumulated = 0
         self.model.train()
         device = torch.cuda.current_device() if torch.cuda.is_available() else torch.device('cpu')
@@ -58,7 +58,7 @@ class SpaPGNetTrainer(object):
                 # in_data has shape B, L, C, H, W: Batch size, number of images, number of channels per image, height, width
                 label, images, grid = data
                 in_data = Variable(images).to(device)
-                target = Variable(grid).to(device).long()
+                target = Variable(grid).to(device).float()
 
                 self.optimizer.zero_grad()
 
@@ -69,17 +69,16 @@ class SpaPGNetTrainer(object):
                 
                 self.writer.add_scalar('train/train_loss', loss, i_accumulated+i+1)
 
-                pred = out_data > 0
-                results = pred == target
-                correct_points = torch.sum(results.long())
-
-                acc = correct_points.float()/results.size()[0]
-                self.writer.add_scalar('train/train_overall_acc', acc, i_accumulated+i+1)
+                prediction = torch.greater(out_data, 0).float()
+                intersection = torch.sum(prediction.mul(target)).float()
+                union = torch.sum(torch.ge(prediction.add(target), 1))
+                iou = intersection / union;
+                self.writer.add_scalar('train/train_iou', iou, i_accumulated+i+1)
 
                 loss.backward()
                 self.optimizer.step()
                 
-                log_str = 'epoch %d, step %d: train_loss %.3f; train_acc %.3f' % (epoch+1, i+1, loss, acc)
+                log_str = 'epoch %d, step %d: train_loss %.3f; train_iou %.3f' % (epoch+1, i+1, loss, iou)
                 if (i+1)%1==0:
                     print(log_str)
             i_accumulated += i
@@ -87,14 +86,14 @@ class SpaPGNetTrainer(object):
             # evaluation
             if (epoch+1)%1==0:
                 with torch.no_grad():
-                    loss, val_overall_acc, val_mean_class_acc = self.update_validation_accuracy(epoch)
+                    loss, val_overall_iou, val_mean_class_acc = self.update_validation_accuracy(epoch)
                 self.writer.add_scalar('val/val_mean_class_acc', val_mean_class_acc, epoch+1)
-                self.writer.add_scalar('val/val_overall_acc', val_overall_acc, epoch+1)
+                self.writer.add_scalar('val/val_overall_iou', val_overall_iou, epoch+1)
                 self.writer.add_scalar('val/val_loss', loss, epoch+1)
 
             # save best model
-            if val_overall_acc > best_accuracy:
-                best_accuracy = val_overall_acc
+            if val_overall_iou > best_iou:
+                best_iou = val_overall_iou
                 self.model.save(self.log_dir, epoch)
  
             # adjust learning rate manually
@@ -107,9 +106,6 @@ class SpaPGNetTrainer(object):
         self.writer.close()
 
     def update_validation_accuracy(self, epoch):
-        all_correct_points = 0
-        all_points = 0
-
         # in_data = None
         # out_data = None
         # target = None
@@ -119,40 +115,40 @@ class SpaPGNetTrainer(object):
         wrong_class = np.zeros(2)
         samples_class = np.zeros(2)
         all_loss = 0
+        sum_iou = 0
+        n_iou = 0
+        n_samples = 0
 
         self.model.eval()
 
         for _, data in enumerate(self.val_loader, 0):
 
             # in_data has shape B, L, C, H, W: Batch size, number of images, number of channels per image, height, width
-            in_data = Variable(data[1]).to(device)
-            target = Variable(data[0]).to(device)
 
+            label, images, grid = data
+            in_data = Variable(images).to(device)
+            target = Variable(grid).to(device).float()
             out_data = self.model(in_data)
-            pred = out_data > 0
+
+            prediction = torch.greater(out_data, 0).float()
+            intersection = torch.sum(prediction.mul(target)).float()
+            union = torch.sum(torch.ge(prediction.add(target), 1)).float()
+            iou = intersection.float() / union.float();
+            sum_iou += iou
             all_loss += self.loss_fn(out_data, target).cpu().data.numpy()
-            results = pred == target
+            n_iou += 1
+            n_samples += images.size()[0]
 
-            for i in range(results.size()[0]):
-                if not bool(results[i].cpu().data.numpy()):
-                    wrong_class[target.cpu().data.numpy().astype('int')[i]] += 1
-                samples_class[target.cpu().data.numpy().astype('int')[i]] += 1
-            correct_points = torch.sum(results.long())
-
-            all_correct_points += correct_points
-            all_points += results.size()[0]
-
-        print ('Total # of test models: ', all_points)
-        val_mean_class_acc = np.mean((samples_class-wrong_class)/samples_class)
-        acc = all_correct_points.float() / all_points
-        val_overall_acc = acc.cpu().data.numpy()
+        print ('Total # of test models: ', n_samples)
+        val_mean_class_acc = 0 #np.mean((samples_class-wrong_class)/samples_class)
+        val_overall_iou = (sum_iou / n_iou).cpu().data.numpy()
         loss = all_loss / len(self.val_loader)
 
         print ('val mean class acc. : ', val_mean_class_acc)
-        print ('val overall acc. : ', val_overall_acc)
+        print ('val overall iou. : ', val_overall_iou)
         print ('val loss : ', loss)
 
         self.model.train()
 
-        return loss, val_overall_acc, val_mean_class_acc
+        return loss, val_overall_iou, val_mean_class_acc
 
