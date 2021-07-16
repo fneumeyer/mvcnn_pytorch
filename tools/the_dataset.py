@@ -26,7 +26,10 @@ class TheDataset(torch.utils.data.Dataset):
                                      std=[0.229, 0.224, 0.225])
             ])
 
-        for classname in self.classnames:    
+        for classname in self.classnames:
+            if not os.path.exists(os.path.join(self.data_path_2D, classname, split)):
+                continue
+
             for filename in os.listdir(os.path.join(self.data_path_2D, classname, split)):                
                 self.filepaths_2D.append(os.path.join(self.data_path_2D, classname, split, filename))
 
@@ -43,7 +46,10 @@ class TheDataset(torch.utils.data.Dataset):
             raise Exception("Invalid number of views")
 
         # 3D
-        for classname in self.classnames:    
+        for classname in self.classnames:
+            if not os.path.exists(os.path.join(self.data_path_2D, classname, split)):
+                continue
+            
             for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
                 self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
 
@@ -68,7 +74,7 @@ class TheDataset(torch.utils.data.Dataset):
 
         # 3D
         grid = np.load(self.filepaths_3D[idx])
-        grid = torch.from_numpy(grid)
+        grid = torch.from_numpy(grid).unsqueeze(0)
         
         return (class_name, stacked_images, grid)
 

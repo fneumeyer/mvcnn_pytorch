@@ -41,16 +41,15 @@ class SpaPGNet(Model):
 
 
     def forward(self, x):
-        
         #Batch size, number of images, number of channels per image, height, width
         B, L, C, H, W = x.shape
 
-        x = torch.cat([self.encoder(x[:,i]) for i in range (L)])
+        x = torch.stack([self.encoder(x[:,i]) for i in range (L)], dim = 1)
         
-        x = torch.sum(x, dim = 0)
+        x = torch.sum(x, dim = 1)
 
         x = x.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
-        
+
         x = self.decoder(x)
 
         return x
