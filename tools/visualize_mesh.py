@@ -22,7 +22,45 @@ def visualize_pointcloud(point_cloud, point_size, flip_axes=False, name='point_c
     plt_points.shader = '3d'
     plot.display()
 
+    x_sum = 0
+    voxels = 0
+    x_max = 0
+    for x in range(64):
+        for y in range(64):
+            for z in range(64):
+                if grid[x][y][z]:
+                    x_sum += (32-x)
+                    voxels += 1
+                    if x > x_max:
+                        x_max = x
+
+    x_avrg = int(x_sum/voxels)
+    print(x_max)
+
+    xyz = []
+    for x in range(64):
+        for y in range(64):
+            for z in range(64):        
+                if grid[x][y][z]: 
+                    grid[x][y][z] = False
+                    xyz.append((x,y,z))
+
+    for point in xyz:
+        grid[point[0]+min(x_avrg, 63 - x_max)][point[1]][point[2]] = True
+
+def add_corners(grid):
+    grid[0][0][0] = True
+    grid[63][0][0] = True
+    grid[0][63][0] = True
+    grid[63][63][0] = True
+    grid[0][0][63] = True
+    grid[63][0][63] = True
+    grid[0][63][63] = True
+    grid[63][63][63] = True
+
 # %%
-grid = np.load(r"C:\Projects\mvcnn_pytorch\ModelNet40Voxelized\guitar\train\guitar_0009.npy")
+grid = np.load(r"C:\Projects\mvcnn_pytorch\ModelNet40Centered\airplane\train\airplane_0029.npy")
+add_corners(grid)
+
 visualize_occupancy(grid)
 # %%

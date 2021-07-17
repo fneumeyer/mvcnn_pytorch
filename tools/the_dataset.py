@@ -76,3 +76,7 @@ class TheDataset(torch.utils.data.Dataset):
         return (class_name, stacked_images, grid)
 
 
+data = TheDataset(data_path_2D=r"C:\Projects\mvcnn_pytorch\ModelNet40_2D", 
+data_path_3D=r"C:\Projects\mvcnn_pytorch\ModelNet40Voxelized", split="train")
+for idx in range(48):
+    print(data.filepaths_2D[idx])

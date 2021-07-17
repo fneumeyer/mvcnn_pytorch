@@ -64,16 +64,15 @@ for classname in classnames:
             if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split)):
                 os.makedirs(os.path.join(voxelized_dataset_path, classname, split))
 
-            if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):
-                if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):
-                    try:
-                        grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
-                        np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
-                    except Exception as ex:
-                        i += 1
-                        print(ex)
-                        print("\File {} out of {} in {} wasn't written due to memory error!\n".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))                        
-                        continue        
+            if not os.path.exists(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]+".npy")):                
+                try:
+                    grid = get_voxel_grid_from_mesh(os.path.join(path_to_dataset, classname, split, filename))
+                    np.save(os.path.join(voxelized_dataset_path, classname, split, filename[:-4]), grid)        
+                except Exception as ex:
+                    i += 1
+                    print(ex)
+                    print("\File {} out of {} in {} wasn't written due to memory error!\n".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))                        
+                    continue        
 
             i += 1
             sys.stdout.write("\rWrote file {} out of {} in {}".format(i, n_files, os.path.join(voxelized_dataset_path, classname, split)))
