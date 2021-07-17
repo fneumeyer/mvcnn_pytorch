@@ -74,7 +74,25 @@ class TheDataset(torch.utils.data.Dataset):
 
         # 3D
         grid = np.load(self.filepaths_3D[idx])
-        grid = torch.from_numpy(grid).unsqueeze(0)
+
+        # center the shape in the voxel grid: first find the bounding box...
+        x_occupied = np.argwhere(grid.max((1,2)))
+        y_occupied = np.argwhere(grid.max((0,2)))
+        z_occupied = np.argwhere(grid.max((0,1)))
+        corner1 = np.array([x_occupied.min(), y_occupied.min(), z_occupied.min()])
+        corner2 = np.array([x_occupied.max()+1, y_occupied.max()+1, z_occupied.max()+1])
+
+        # ...find the corners of the new bounding box...
+        center = np.array(grid.shape) // 2
+        new_corner1 = center - (corner2 - corner1) // 2
+        new_corner2 = center + (corner2 - corner1 + 1) // 2
+
+        # ...and write the shape into the new bounding box
+        centered_grid = np.zeros_like(grid)
+        centered_grid[new_corner1[0]:new_corner2[0], new_corner1[1]:new_corner2[1], new_corner1[2]:new_corner2[2]
+            ] = grid[corner1[0]:corner2[0], corner1[1]:corner2[1], corner1[2]:corner2[2]]
+
+        grid = torch.from_numpy(centered_grid).unsqueeze(0)
         
         return (class_name, stacked_images, grid)
 
