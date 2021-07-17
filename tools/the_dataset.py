@@ -32,6 +32,7 @@ class TheDataset(torch.utils.data.Dataset):
 
             for filename in os.listdir(os.path.join(self.data_path_2D, classname, split)):                
                 self.filepaths_2D.append(os.path.join(self.data_path_2D, classname, split, filename))
+        self.filepaths_2D.sort()
 
         if num_models != 0: # Use only a part of the dataset
             self.filepaths_2D = self.filepaths_2D[:min(num_models,len(self.filepaths_2D))]
@@ -52,6 +53,7 @@ class TheDataset(torch.utils.data.Dataset):
             
             for filename in os.listdir(os.path.join(self.data_path_3D, classname, split)):                
                 self.filepaths_3D.append(os.path.join(self.data_path_3D, classname, split, filename))
+        self.filepaths_3D.sort()
 
     def __len__(self):
         return int(len(self.filepaths_3D)) 
